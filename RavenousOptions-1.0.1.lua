@@ -32,9 +32,12 @@ local function CreateDropDown(optionsTable, category, option)
     setting.owner = ADDON_NAME
     local fn = function()
         local container = Settings.CreateControlTextContainer()
-        local choices = type(option.choices) == "function" and option.choices() or option.choices
-        for i, choice in pairs(choices) do
-            container:Add(i, choice)
+        if type(option.choices) == "function" then
+            option.choices(container)
+        else
+            for i, choice in pairs(option.choices) do
+                container:Add(i, choice)
+            end
         end
         return container:GetData()
     end
