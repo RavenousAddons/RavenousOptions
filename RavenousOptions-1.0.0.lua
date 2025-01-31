@@ -15,6 +15,9 @@ local function CreateCheckBox(optionsTable, category, option)
     local setting = Settings.RegisterAddOnSetting(category, ns.prefix .. option.key, ns.prefix .. option.key, optionsTable, type(ns.data.defaults[option.key]), option.name, ns.data.defaults[option.key])
     setting.owner = ADDON_NAME
     Settings.CreateCheckbox(category, setting, option.tooltip)
+    if option.callback then
+        Settings.SetOnValueChangedCallback(ns.prefix .. option.key, option.callback)
+    end
     if option.new == ns.version then
         if not NewSettings[gameVersion] then
             NewSettings[gameVersion] = {}
@@ -27,7 +30,14 @@ end
 local function CreateDropDown(optionsTable, category, option)
     local setting = Settings.RegisterAddOnSetting(category, ns.prefix .. option.key, ns.prefix .. option.key, optionsTable, type(ns.data.defaults[option.key]), option.name, ns.data.defaults[option.key])
     setting.owner = ADDON_NAME
-    Settings.CreateDropdown(category, setting, option.fn, option.tooltip)
+    local fn = function()
+        local container = Settings.CreateControlTextContainer()
+        for i, choice in pairs(option.choices) do
+            container:Add(i, choice)
+        end
+        return container:GetData()
+    end
+    Settings.CreateDropdown(category, setting, fn, option.tooltip)
     if option.callback then
         Settings.SetOnValueChangedCallback(ns.prefix .. option.key, option.callback)
     end
@@ -45,7 +55,7 @@ local function CreateSection(optionsTable, category, layout, title, options)
     for index = 1, #options do
         local option = options[index]
         if option.condition == nil or option.condition() then
-            if option.fn then
+            if option.choices then
                 CreateDropDown(optionsTable, category, option)
             else
                 CreateCheckBox(optionsTable, category, option)
